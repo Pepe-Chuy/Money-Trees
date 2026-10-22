@@ -1,0 +1,49 @@
+/*
+ * theme.css - Variables de diseno (design tokens).
+ *
+ * Toda la UI debe usar estas variables en vez de valores fijos. Asi, cambiar
+ * el aspecto de la app (o agregar modo oscuro en la fase 5) significa editar
+ * solo este archivo: el modo oscuro sera un bloque
+ * `@media (prefers-color-scheme: dark) { :root { ... } }` que redefine colores.
+ *
+ * Paleta provisional tomada del icono (crema, verde hoja, cafe tronco).
+ */
+:root {
+  /* Colores base */
+  --color-bg: #f6f3e7;          /* fondo general (crema del icono) */
+  --color-surface: #ffffff;     /* tarjetas */
+  --color-text: #1f2a24;        /* texto principal */
+  --color-text-muted: #5f6b63;  /* texto secundario */
+  --color-border: #e2ddcc;
+
+  /* Marca */
+  --color-primary: #2e8b57;     /* verde hoja: botones y acentos */
+  --color-primary-text: #ffffff;
+  --color-accent: #6b4528;      /* cafe tronco */
+
+  /* Estados de presupuesto (fase 1: normal / aviso 80% / alerta 100%) */
+  --color-ok: #2e8b57;
+  --color-warning: #c98a0b;
+  --color-danger: #c0392b;
+
+  /* Tipografia: fuente del sistema (San Francisco en iPhone), sin descargas. */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;          /* 16px: minimo en inputs para que iOS no haga zoom */
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+
+  /* Espaciado en escala de 4px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-md: 12px;
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08);
+
+  /* Solo modo claro por ahora: evita que iOS oscurezca controles nativos. */
+  color-scheme: light;
+}

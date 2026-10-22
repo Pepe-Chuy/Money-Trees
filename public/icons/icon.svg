@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    Icono de Money Trees: un signo de dolar cuya barra vertical es el tronco
+    de un arbol; de la parte alta salen ramas con hojas.
+
+    Notas de diseno:
+    - El fondo cubre todo el cuadro (sin transparencia) porque iOS rellena
+      con negro las zonas transparentes del apple-touch-icon.
+    - No se dibujan esquinas redondeadas: iOS y Android aplican su propia
+      mascara. El grupo "art" se escala en la variante maskable para que el
+      dibujo quede dentro de la zona segura (circulo del 80% central).
+    - El signo de dolar vertical en "$" esta formado por el tronco y la S.
+  -->
+  <defs>
+    <!-- Hoja base apuntando hacia arriba; el origen (0,0) es el tallo. -->
+    <path id="leaf" d="M0 0 C 16 -14 18 -36 0 -54 C -18 -36 -16 -14 0 0 Z"/>
+  </defs>
+
+  <rect width="512" height="512" fill="#F6F3E7"/>
+
+  <g id="art">
+    <!-- Suelo -->
+    <ellipse cx="256" cy="444" rx="128" ry="12" fill="#CFE6C8"/>
+
+    <!-- Ramas (debajo de las hojas) -->
+    <g fill="none" stroke="#6B4528" stroke-linecap="round">
+      <path d="M257 196 C 285 170 310 150 342 128" stroke-width="11"/>
+      <path d="M255 218 C 228 196 204 178 172 162" stroke-width="11"/>
+      <path d="M318 145 C 326 128 330 112 328 96" stroke-width="7"/>
+      <path d="M196 173 C 186 156 180 140 182 124" stroke-width="7"/>
+    </g>
+
+    <!-- Tronco: la barra vertical del signo de dolar, mas ancha en la base y con raices. -->
+    <path d="M247 112 L265 112 L273 418 Q 288 438 316 444 L196 444 Q 224 438 239 418 Z" fill="#6B4528"/>
+
+    <!-- La S del signo de dolar, enroscada alrededor del tronco. -->
+    <path d="M332 236 C 316 204 214 196 204 250 C 196 294 316 286 316 342 C 316 398 210 400 180 362"
+          fill="none" stroke="#7A5232" stroke-width="30" stroke-linecap="round"/>
+
+    <!-- Hojas: copa central y racimos en la punta de cada rama. -->
+    <g fill="#2E8B57">
+      <use href="#leaf" transform="translate(256 116) scale(1.25)"/>
+      <use href="#leaf" transform="translate(342 128) rotate(55)"/>
+      <use href="#leaf" transform="translate(172 162) rotate(-60)"/>
+      <use href="#leaf" transform="translate(328 98) rotate(10) scale(0.85)"/>
+      <use href="#leaf" transform="translate(182 126) rotate(-15) scale(0.85)"/>
+    </g>
+    <g fill="#4FB477">
+      <use href="#leaf" transform="translate(256 118) rotate(-38) scale(1.05)"/>
+      <use href="#leaf" transform="translate(256 118) rotate(38) scale(1.05)"/>
+      <use href="#leaf" transform="translate(342 128) rotate(15)"/>
+      <use href="#leaf" transform="translate(172 162) rotate(-20)"/>
+      <use href="#leaf" transform="translate(300 160) rotate(-25) scale(0.7)"/>
+    </g>
+    <g fill="#1F6B42">
+      <use href="#leaf" transform="translate(342 128) rotate(95) scale(0.9)"/>
+      <use href="#leaf" transform="translate(172 162) rotate(-100) scale(0.9)"/>
+      <use href="#leaf" transform="translate(214 188) rotate(30) scale(0.65)"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+# Dependencias (se reinstalan con npm install / npm ci)
+node_modules/
+
+# Resultado del build (lo genera GitHub Actions)
+dist/
+
+# Sistema y editor
+.DS_Store
+Thumbs.db
+*.log

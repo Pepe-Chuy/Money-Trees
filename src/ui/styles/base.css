@@ -1,0 +1,49 @@
+/*
+ * base.css - Estilos globales y ajustes para iPhone.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Evita que iOS agrande el texto al girar el telefono. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  /* Quita el destello gris al tocar elementos en iOS. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Safe areas: con viewport-fit=cover el contenido llega hasta los bordes
+ * fisicos de la pantalla. env(safe-area-inset-*) da el espacio que ocupan la
+ * isla/notch (arriba) y la barra de inicio (abajo); max() asegura un margen
+ * minimo en equipos donde el inset es 0.
+ */
+#app {
+  min-height: 100dvh; /* dvh = alto real visible, descontando barras de Safari */
+  padding:
+    max(var(--space-4), env(safe-area-inset-top))
+    max(var(--space-4), env(safe-area-inset-right))
+    max(var(--space-4), env(safe-area-inset-bottom))
+    max(var(--space-4), env(safe-area-inset-left));
+}
+
+/* iOS hace zoom al enfocar un campo con letra menor a 16px; esto lo previene. */
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  font-size: max(16px, 1em);
+}

@@ -1,0 +1,22 @@
+{
+  "name": "money-trees",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Presupuesto mensual personal como PWA (sin servidor, datos solo en el dispositivo).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "icons": "node scripts/generate-icons.js"
+  },
+  "dependencies": {
+    "preact": "^11.0.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "sharp": "^0.35.5",
+    "vite": "^8.3.4"
+  }
+}

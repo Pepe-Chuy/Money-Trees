@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!--
+      viewport-fit=cover: la app ocupa toda la pantalla, incluida la zona de la
+      isla/notch y la barra de inicio. A cambio, el CSS debe respetar las "safe
+      areas" con env(safe-area-inset-*) (ver src/ui/styles/base.css).
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <title>Money Trees</title>
+    <meta name="description" content="Presupuesto mensual personal." />
+
+    <!-- Metas para que iOS la trate como app al anadirla a la pantalla de inicio. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Money Trees" />
+    <!-- default: barra de estado con texto oscuro sobre fondo claro (solo modo claro por ahora). -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#F6F3E7" />
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
