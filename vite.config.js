@@ -1,13 +1,13 @@
 /**
- * Configuracion de Vite.
+ * Configuración de Vite.
  *
  * - preact(): permite JSX con Preact (transforma <App /> en llamadas a Preact)
  *   y activa Prefresh (recarga en caliente al editar componentes en desarrollo).
- * - base: './' hace que todas las rutas del build sean relativas. Asi la app
+ * - base: './' hace que todas las rutas del build sean relativas. Así la app
  *   funciona igual en http://localhost y en https://usuario.github.io/<repo>/
- *   sin tener que escribir el nombre del repositorio en ningun lado.
- * - define: reemplaza __APP_VERSION__ en el codigo por la version de package.json,
- *   para mostrarla en pantalla y saber que version tiene instalada el iPhone.
+ *   sin tener que escribir el nombre del repositorio en ningún lado.
+ * - define: reemplaza __APP_VERSION__ en el código por la versión de package.json,
+ *   para mostrarla en pantalla y saber qué versión tiene instalada el iPhone.
  */
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
@@ -24,7 +24,7 @@ export default defineConfig({
   },
   server: {
     // host: true expone el servidor en la red local para abrirlo desde el iPhone
-    // (http://IP-de-tu-PC:5173). Ojo: sin HTTPS el service worker no funciona ahi.
+    // (http://IP-de-tu-PC:5173). Ojo: sin HTTPS el service worker no funciona ahí.
     host: true,
   },
 });

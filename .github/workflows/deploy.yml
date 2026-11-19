@@ -1,11 +1,18 @@
 # Despliegue a GitHub Pages.
 #
-# Se ejecuta en cada push a la rama main (y a mano desde la pestana Actions).
+# Se ejecuta en cada push a la rama main (y a mano desde la pestaña Actions).
 # Pasos: instalar dependencias -> correr pruebas -> compilar -> publicar dist/.
-# Si las pruebas fallan, no se publica nada: la version en el iPhone sigue intacta.
+# Si las pruebas fallan, no se publica nada: la versión en el iPhone sigue intacta.
 #
-# Requisito unico en GitHub: Settings > Pages > Build and deployment >
+# Requisito único en GitHub: Settings > Pages > Build and deployment >
 # Source: "GitHub Actions".
+#
+# Seguridad: cada acción está fijada a un commit (SHA) y no a un tag como "v7".
+# Un tag lo puede mover el dueño del repositorio de la acción (o un atacante
+# que lo comprometa) para que apunte a otro código; un SHA identifica
+# exactamente el código revisado y no se puede cambiar. El comentario al final
+# de cada línea indica la versión legible. Dependabot (.github/dependabot.yml)
+# propone las actualizaciones con el SHA nuevo.
 
 name: Deploy to GitHub Pages
 
@@ -14,7 +21,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Permisos minimos: leer el codigo y publicar en Pages.
+# Permisos mínimos: leer el código y publicar en Pages.
 permissions:
   contents: read
   pages: write
@@ -28,10 +35,15 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No dejar el token de GitHub guardado en .git durante el resto del job:
+          # ningún paso posterior necesita hacer push.
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -43,18 +55,19 @@ jobs:
 
       - run: npm run build
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

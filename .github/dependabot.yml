@@ -1,0 +1,27 @@
+# Dependabot: revisa cada semana si hay versiones nuevas y abre un Pull Request
+# por cada actualización. Nada se aplica solo: tú revisas y aceptas (merge) el PR,
+# y al hacerlo el workflow corre las pruebas antes de publicar.
+#
+# Las alertas de vulnerabilidades se activan aparte en GitHub:
+# Settings > Advanced Security > Dependabot alerts / security updates.
+
+version: 2
+updates:
+  # Acciones del workflow (actualiza también el SHA fijado y su comentario).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Dependencias de npm (package.json / package-lock.json).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Agrupar parches y menores en un solo PR para no llenar la bandeja.
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

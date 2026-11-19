@@ -3,7 +3,7 @@
  *
  * Sirve para comprobar en el iPhone que IndexedDB realmente persiste:
  * si el contador sube cada vez que cierras y abres la app, los datos se
- * estan guardando. Se guarda en el store `settings` con id 'diagnostics'.
+ * están guardando. Se guarda en el store `settings` con id 'diagnostics'.
  * Probablemente se elimine cuando exista la pantalla real de ajustes.
  */
 import { STORES } from './schema.js';
@@ -11,10 +11,10 @@ import { runTransaction, requestToPromise } from './db.js';
 
 /**
  * Suma 1 al contador de aperturas y devuelve el registro actualizado.
- * Lectura y escritura van en la MISMA transaccion readwrite para que sea
- * atomica (si hubiera dos aperturas simultaneas, ninguna perderia su incremento).
- * Notar que el await dentro de la transaccion es de una peticion de IndexedDB,
- * lo cual es valido (ver la trampa explicada en db.js).
+ * Lectura y escritura van en la MISMA transacción readwrite para que sea
+ * atómica (si hubiera dos aperturas simultáneas, ninguna perdería su incremento).
+ * Notar que el await dentro de la transacción es de una petición de IndexedDB,
+ * lo cual es válido (ver la trampa explicada en db.js).
  * @returns {Promise<{ id: string, openCount: number, firstOpenedAt: string }>}
  */
 export function recordAppOpen() {

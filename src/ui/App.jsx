@@ -1,153 +1,151 @@
 /**
- * App.jsx - Componente raiz.
+ * App.jsx - Componente raíz: proveedor de datos, bloqueo con PIN, pestañas
+ * y la hoja modal donde se abren todos los formularios.
  *
- * En la fase 0 es una pantalla de diagnostico para verificar en el iPhone que:
- *   1. la app esta instalada (se abrio desde la pantalla de inicio),
- *   2. funciona sin conexion (el service worker controla la pagina),
- *   3. IndexedDB abre y guarda datos (contador de aperturas),
- *   4. el almacenamiento quedo marcado como persistente.
- *
- * Conceptos de Preact usados:
- * - Componente = funcion que devuelve JSX.
- * - useState: guarda un valor que, al cambiar, vuelve a dibujar el componente.
- * - useEffect(fn, []): ejecuta fn una vez despues del primer dibujo; es donde
- *   va el trabajo asincrono (abrir la base, pedir permisos).
+ * Navegación: no usamos URLs ni un "router". La pestaña activa es un estado
+ * (useState). En una PWA instalada no hay barra de direcciones, así que las
+ * URLs no aportan nada y un estado es más simple.
  */
-import { useEffect, useState } from 'preact/hooks';
-import { openDatabase } from '../data/db.js';
-import { recordAppOpen } from '../data/diagnostics.js';
-import { requestPersistentStorage, getStorageEstimate } from '../data/storage.js';
-import { formatCents } from '../core/money.js';
-import { todayISO } from '../core/dates.js';
-import './App.css';
+import { useRef, useState } from 'preact/hooks';
+import { AppDataProvider, useAppData } from './state/AppDataContext.jsx';
+import { useAutoLock } from './hooks/useAutoLock.js';
+import { TabBar } from './components/TabBar.jsx';
+import { Sheet } from './components/Sheet.jsx';
+import { SummaryScreen } from './screens/SummaryScreen.jsx';
+import { ExpensesScreen } from './screens/ExpensesScreen.jsx';
+import { IncomeScreen } from './screens/IncomeScreen.jsx';
+import { SettingsScreen } from './screens/SettingsScreen.jsx';
+import { CategoriesScreen } from './screens/CategoriesScreen.jsx';
+import { LockScreen } from './screens/LockScreen.jsx';
+import { ExpenseForm } from './forms/ExpenseForm.jsx';
+import { IncomeForm } from './forms/IncomeForm.jsx';
+import { CategoryForm } from './forms/CategoryForm.jsx';
+import { PinSetup } from './forms/PinSetup.jsx';
 
-/**
- * Detecta si la app corre instalada (pantalla de inicio) y no dentro de Safari.
- * iOS expone navigator.standalone; los demas navegadores usan display-mode.
- * @returns {boolean}
- */
-function isInstalled() {
-  return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-}
+/** Títulos de la hoja modal según lo que se abra. */
+const PIN_TITLES = { enable: 'Activar PIN', change: 'Cambiar PIN', disable: 'Quitar PIN' };
 
-/**
- * Convierte bytes a un texto legible (KB/MB/GB).
- * @param {number} bytes
- * @returns {string}
- */
-function formatBytes(bytes) {
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
-}
-
-/**
- * Fila de la lista de verificacion.
- * @param {{ label: string, ok: boolean|null, detail: string }} props
- *        ok = null significa "comprobando..."
- */
-function CheckRow({ label, ok, detail }) {
-  const status = ok === null ? 'pending' : ok ? 'ok' : 'fail';
-  const statusText = { pending: '...', ok: 'OK', fail: 'NO' }[status];
+export function App() {
   return (
-    <li class="check-row">
-      <span class={`check-status check-status--${status}`}>{statusText}</span>
-      <div>
-        <div class="check-label">{label}</div>
-        <div class="check-detail">{detail}</div>
-      </div>
-    </li>
+    <AppDataProvider>
+      <AppShell />
+    </AppDataProvider>
   );
 }
 
-export function App() {
-  // Estado inicial: todo "comprobando" (null) hasta que terminen las verificaciones.
-  const [db, setDb] = useState({ ok: null, detail: 'Abriendo base de datos...' });
-  const [persist, setPersist] = useState({ ok: null, detail: 'Solicitando...' });
-  const [offline, setOffline] = useState({ ok: null, detail: 'Comprobando...' });
+/**
+ * Estructura visible de la app. Va separada de App porque necesita leer el
+ * contexto, y el contexto solo existe DENTRO de <AppDataProvider>.
+ */
+function AppShell() {
+  const { ready, error, settings } = useAppData();
+  const { decided, locked, unlock } = useAutoLock(settings);
+  const [tab, setTab] = useState('summary');
+  const [settingsView, setSettingsView] = useState('main'); // 'main' | 'categories'
+  // Hoja abierta: null o { kind: 'expense'|'income'|'category'|'pin', item }.
+  const [sheet, setSheet] = useState(null);
 
-  useEffect(() => {
-    // Base de datos + contador de aperturas.
-    (async () => {
-      try {
-        const database = await openDatabase();
-        const diag = await recordAppOpen();
-        setDb({
-          ok: true,
-          detail: `Versión ${database.version}, ${database.objectStoreNames.length} tablas. ` +
-            `Abierta ${diag.openCount} ${diag.openCount === 1 ? 'vez' : 'veces'}.`,
-        });
-      } catch (error) {
-        setDb({ ok: false, detail: `Error: ${error.message}` });
-      }
-    })();
+  /**
+   * Truco para iOS: Safari solo abre el teclado si focus() ocurre dentro del
+   * mismo toque del usuario. El formulario se monta DESPUÉS del toque, así que
+   * su focus() no abriría el teclado. Solución: en el toque enfocamos este
+   * input invisible (ya existe en la página); el teclado se abre, y cuando el
+   * formulario enfoca el campo de monto, el foco pasa de un input a otro y
+   * el teclado sigue abierto. Ahorra un toque en cada captura.
+   */
+  const keyboardPrimer = useRef(null);
 
-    // Almacenamiento persistente.
-    (async () => {
-      const { supported, persisted } = await requestPersistentStorage();
-      const estimate = await getStorageEstimate();
-      const usage = estimate ? ` Usado: ${formatBytes(estimate.usage)}.` : '';
-      setPersist({
-        ok: persisted,
-        detail: (supported ? (persisted ? 'Concedido.' : 'No concedido todavía.') : 'No soportado.') + usage,
-      });
-    })();
+  if (error) {
+    return (
+      <div class="splash">
+        <p>No se pudieron abrir los datos: {String(error.message ?? error)}</p>
+      </div>
+    );
+  }
+  if (!ready || !decided) {
+    return (
+      <div class="splash">
+        <img src="./icons/icon-180.png" alt="" width="72" height="72" />
+      </div>
+    );
+  }
+  if (locked) return <LockScreen onUnlock={unlock} />;
 
-    // Offline: hay service worker controlando esta pagina.
-    if (!import.meta.env.PROD) {
-      setOffline({ ok: false, detail: 'Solo en la versión publicada (no en npm run dev).' });
-    } else if (!('serviceWorker' in navigator)) {
-      setOffline({ ok: false, detail: 'Este navegador no soporta service workers.' });
-    } else {
-      // ready se resuelve cuando hay un service worker activo; controller indica
-      // si ya controla ESTA pagina (en la primera visita, hasta recargar o claim).
-      navigator.serviceWorker.ready.then(() => {
-        setOffline(
-          navigator.serviceWorker.controller
-            ? { ok: true, detail: 'Archivos guardados; abre sin internet.' }
-            : { ok: false, detail: 'Instalado; cierra y vuelve a abrir la app.' }
-        );
-      });
-    }
-  }, []);
+  const closeSheet = () => setSheet(null);
 
-  const installed = isInstalled();
+  function openQuickAdd() {
+    keyboardPrimer.current?.focus();
+    setSheet({ kind: 'expense', item: null });
+  }
+
+  /** Cambia de pestaña y regresa al inicio de la pantalla. */
+  function changeTab(id) {
+    setTab(id);
+    if (id === 'settings') setSettingsView('main');
+    window.scrollTo(0, 0);
+  }
+
+  const goToSettings = () => changeTab('settings');
+
+  let screen;
+  if (tab === 'summary') {
+    screen = <SummaryScreen onGoToSettings={goToSettings} />;
+  } else if (tab === 'expenses') {
+    screen = <ExpensesScreen onEdit={(item) => setSheet({ kind: 'expense', item })} />;
+  } else if (tab === 'income') {
+    screen = (
+      <IncomeScreen
+        onAdd={() => setSheet({ kind: 'income', item: null })}
+        onEdit={(item) => setSheet({ kind: 'income', item })}
+        onGoToSettings={goToSettings}
+      />
+    );
+  } else if (settingsView === 'categories') {
+    screen = (
+      <CategoriesScreen onBack={() => setSettingsView('main')} onEdit={(item) => setSheet({ kind: 'category', item })} />
+    );
+  } else {
+    screen = (
+      <SettingsScreen
+        onOpenCategories={() => setSettingsView('categories')}
+        onPin={(mode) => setSheet({ kind: 'pin', item: mode })}
+      />
+    );
+  }
+
+  let sheetContent = null;
+  if (sheet?.kind === 'expense') {
+    sheetContent = (
+      <Sheet title={sheet.item ? 'Editar gasto' : 'Nuevo gasto'} onClose={closeSheet}>
+        <ExpenseForm expense={sheet.item} onDone={closeSheet} />
+      </Sheet>
+    );
+  } else if (sheet?.kind === 'income') {
+    sheetContent = (
+      <Sheet title={sheet.item ? 'Editar ingreso' : 'Nuevo ingreso extra'} onClose={closeSheet}>
+        <IncomeForm income={sheet.item} onDone={closeSheet} />
+      </Sheet>
+    );
+  } else if (sheet?.kind === 'category') {
+    sheetContent = (
+      <Sheet title={sheet.item ? 'Editar categoría' : 'Nueva categoría'} onClose={closeSheet}>
+        <CategoryForm category={sheet.item} onDone={closeSheet} />
+      </Sheet>
+    );
+  } else if (sheet?.kind === 'pin') {
+    sheetContent = (
+      <Sheet title={PIN_TITLES[sheet.item]} onClose={closeSheet}>
+        <PinSetup mode={sheet.item} onDone={closeSheet} />
+      </Sheet>
+    );
+  }
 
   return (
-    <main class="app">
-      <header class="app-header">
-        <img class="app-logo" src="./icons/icon-180.png" alt="" width="64" height="64" />
-        <div>
-          <h1 class="app-title">Money Trees</h1>
-          <p class="app-subtitle">Versión {__APP_VERSION__} - Fase 0</p>
-        </div>
-      </header>
-
-      <section class="card">
-        <h2 class="card-title">Verificación de la instalación</h2>
-        <ul class="check-list">
-          <CheckRow
-            label="Instalada en pantalla de inicio"
-            ok={installed}
-            detail={installed ? 'Corriendo como app.' : 'En Safari: Compartir > Añadir a pantalla de inicio.'}
-          />
-          <CheckRow label="Funciona sin conexión" ok={offline.ok} detail={offline.detail} />
-          <CheckRow label="Base de datos (IndexedDB)" ok={db.ok} detail={db.detail} />
-          <CheckRow label="Almacenamiento persistente" ok={persist.ok} detail={persist.detail} />
-        </ul>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">Formato local</h2>
-        <p class="check-detail">
-          Hoy: {todayISO()} - Ejemplo de monto: {formatCents(3000000)}
-        </p>
-      </section>
-    </main>
+    <>
+      <main class="app-main">{screen}</main>
+      <TabBar tab={tab} onChange={changeTab} onAdd={openQuickAdd} />
+      <input ref={keyboardPrimer} class="keyboard-primer" type="text" inputMode="decimal" tabIndex={-1} aria-hidden="true" />
+      {sheetContent}
+    </>
   );
 }

@@ -1,0 +1,7 @@
+# Fin de línea: guardar todo el texto con LF (estilo Unix) en el repositorio y
+# en la copia de trabajo, también en Windows. Evita diffs donde "cambian" todas
+# las líneas solo por CRLF vs LF, y los avisos "LF will be replaced by CRLF".
+* text=auto eol=lf
+
+# Binarios: nunca convertir.
+*.png binary

@@ -1,14 +1,14 @@
 /**
  * money.js - Manejo de dinero en centavos.
  *
- * Convencion de toda la app: el dinero se guarda SIEMPRE como entero en
- * centavos ($1,234.56 -> 123456). Motivo: los numeros de JavaScript son
+ * Convención de toda la app: el dinero se guarda SIEMPRE como entero en
+ * centavos ($1,234.56 -> 123456). Motivo: los números de JavaScript son
  * flotantes binarios (IEEE 754) y no pueden representar exactamente 0.1:
  *   0.1 + 0.2 === 0.30000000000000004
  * Con enteros (hasta 2^53, unos 90 billones de pesos en centavos) la suma y
  * la resta son exactas. Solo se convierte a pesos al mostrar.
  *
- * Este modulo es puro (no toca el DOM ni el almacenamiento) para poder
+ * Este módulo es puro (no toca el DOM ni el almacenamiento) para poder
  * probarlo con `node --test`.
  */
 
@@ -24,14 +24,14 @@ const mxnFormatter = new Intl.NumberFormat('es-MX', {
  * Convierte texto escrito por el usuario a centavos SIN pasar por flotantes.
  *
  * Acepta: "1234", "1234.5", "1,234.56", "$1,234.56", " 12 ", "-50", ".5"
- * Rechaza (devuelve null): texto vacio, letras, mas de 2 decimales, mas de un punto.
+ * Rechaza (devuelve null): texto vacío, letras, más de 2 decimales, más de un punto.
  *
- * Por que no usar Math.round(parseFloat(text) * 100): para montos normales
+ * Por qué no usar Math.round(parseFloat(text) * 100): para montos normales
  * funciona, pero 1.005 * 100 da 100.49999999999999 y redondea a 100, no a 101.
  * Separar parte entera y decimal como texto evita el problema por completo.
  *
- * @param {string} text  monto tal como lo escribio el usuario
- * @returns {number|null} entero en centavos, o null si el texto no es un monto valido
+ * @param {string} text  monto tal como lo escribió el usuario
+ * @returns {number|null} entero en centavos, o null si el texto no es un monto válido
  */
 export function parseMoneyToCents(text) {
   if (typeof text !== 'string') return null;
@@ -39,8 +39,8 @@ export function parseMoneyToCents(text) {
   // Quitar espacios, signo de pesos y separadores de miles (la coma).
   const cleaned = text.trim().replace(/[\s$,]/g, '');
 
-  // Formato aceptado: signo opcional, digitos, y opcionalmente punto con 0 a 2 decimales.
-  // Debe haber al menos un digito en total ("." solo no es valido).
+  // Formato aceptado: signo opcional, dígitos, y opcionalmente punto con 0 a 2 decimales.
+  // Debe haber al menos un dígito en total ("." solo no es válido).
   const match = /^(-?)(\d*)(?:\.(\d{0,2}))?$/.exec(cleaned);
   if (!match) return null;
 
@@ -57,7 +57,7 @@ export function parseMoneyToCents(text) {
 
 /**
  * Formatea centavos como moneda mexicana: 123456 -> "$1,234.56".
- * Dividir entre 100 aqui produce un flotante, pero solo para mostrarlo con
+ * Dividir entre 100 aquí produce un flotante, pero solo para mostrarlo con
  * 2 decimales; el valor guardado sigue siendo el entero exacto.
  *
  * @param {number} cents entero en centavos

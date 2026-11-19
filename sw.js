@@ -8,21 +8,21 @@
  *                         (con sus nombres con hash, ej. assets/index-a1b2c3.js)
  *   __CACHE_VERSION__  -> hash del contenido del build
  *
- * Que es un service worker: un script que el navegador ejecuta aparte de la
- * pagina y que puede interceptar cada peticion de red (evento fetch). Lo usamos
+ * Qué es un service worker: un script que el navegador ejecuta aparte de la
+ * página y que puede interceptar cada petición de red (evento fetch). Lo usamos
  * para guardar todos los archivos de la app en la Cache Storage y responder
- * desde ahi, de modo que la app abra sin conexion.
+ * desde ahí, de modo que la app abra sin conexión.
  *
  * Ciclo de vida:
  *   1. install:  se descarga todo lo de PRECACHE_URLS en una cache nueva.
  *   2. activate: se borran las caches de versiones anteriores.
- *   3. fetch:    cada peticion se responde primero desde la cache.
+ *   3. fetch:    cada petición se responde primero desde la cache.
  *
- * Como llegan las actualizaciones: el navegador vuelve a descargar sw.js al
- * abrir la app. Si cambio un solo byte (y el hash cambia en cada build con
- * cambios), se instala la version nueva. Con skipWaiting + clients.claim la
- * nueva version toma el control de inmediato; la pantalla ya abierta sigue
- * usando los archivos que tenia cargados y la siguiente apertura usa los nuevos.
+ * Cómo llegan las actualizaciones: el navegador vuelve a descargar sw.js al
+ * abrir la app. Si cambió un solo byte (y el hash cambia en cada build con
+ * cambios), se instala la versión nueva. Con skipWaiting + clients.claim la
+ * nueva versión toma el control de inmediato; la pantalla ya abierta sigue
+ * usando los archivos que tenía cargados y la siguiente apertura usa los nuevos.
  */
 
 const PRECACHE_URLS = __PRECACHE_URLS__;
@@ -31,8 +31,8 @@ const CACHE_NAME = `money-trees-__CACHE_VERSION__`;
 /**
  * install: precarga todos los archivos del build.
  * event.waitUntil mantiene vivo al service worker hasta que la promesa termine;
- * si alguna descarga falla, la instalacion completa falla y se reintenta en la
- * siguiente visita (asi nunca queda una cache a medias).
+ * si alguna descarga falla, la instalación completa falla y se reintenta en la
+ * siguiente visita (así nunca queda una cache a medias).
  */
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -42,7 +42,7 @@ self.addEventListener('install', (event) => {
       // GitHub Pages es /<nombre-del-repo>/. new URL las vuelve absolutas.
       const urls = PRECACHE_URLS.map((p) => new URL(p, self.registration.scope).href);
       await cache.addAll(urls);
-      // Activar la nueva version sin esperar a que se cierren las pestanas viejas.
+      // Activar la nueva versión sin esperar a que se cierren las pestañas viejas.
       await self.skipWaiting();
     })()
   );
@@ -50,7 +50,7 @@ self.addEventListener('install', (event) => {
 
 /**
  * activate: borra las caches de versiones anteriores y toma el control de las
- * paginas abiertas (clients.claim) para que empiecen a usar este worker.
+ * páginas abiertas (clients.claim) para que empiecen a usar este worker.
  */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
@@ -68,10 +68,10 @@ self.addEventListener('activate', (event) => {
 
 /**
  * fetch: estrategia "cache primero".
- * - Solo se interceptan peticiones GET al mismo origen; todo lo demas pasa
+ * - Solo se interceptan peticiones GET al mismo origen; todo lo demás pasa
  *   directo a la red (la app no usa servidores externos, pero por si acaso).
  * - Navegaciones (abrir la app o recargar): se responde con index.html de la
- *   cache. Es una SPA, asi que cualquier ruta muestra la misma pagina.
+ *   cache. Es una SPA, así que cualquier ruta muestra la misma página.
  * - Otros archivos: cache si existe; si no, red.
  */
 self.addEventListener('fetch', (event) => {

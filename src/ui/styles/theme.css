@@ -1,9 +1,9 @@
 /*
- * theme.css - Variables de diseno (design tokens).
+ * theme.css - Variables de diseño (design tokens).
  *
- * Toda la UI debe usar estas variables en vez de valores fijos. Asi, cambiar
+ * Toda la UI debe usar estas variables en vez de valores fijos. Así, cambiar
  * el aspecto de la app (o agregar modo oscuro en la fase 5) significa editar
- * solo este archivo: el modo oscuro sera un bloque
+ * solo este archivo: el modo oscuro será un bloque
  * `@media (prefers-color-scheme: dark) { :root { ... } }` que redefine colores.
  *
  * Paleta provisional tomada del icono (crema, verde hoja, cafe tronco).
@@ -25,8 +25,11 @@
   --color-ok: #2e8b57;
   --color-warning: #c98a0b;
   --color-danger: #c0392b;
+  --color-primary-soft: #e4f2e9;  /* fondo de chips seleccionados y avisos */
+  --color-danger-soft: #fbeae8;
+  --color-backdrop: rgb(20 30 25 / 0.45); /* fondo oscuro detrás de las hojas modales */
 
-  /* Tipografia: fuente del sistema (San Francisco en iPhone), sin descargas. */
+  /* Tipografía: fuente del sistema (San Francisco en iPhone), sin descargas. */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;          /* 16px: minimo en inputs para que iOS no haga zoom */
@@ -41,7 +44,13 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
 
+  --radius-sm: 8px;
   --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* Barra de pestañas inferior (sin contar la zona de la barra de inicio del iPhone). */
+  --tabbar-height: 60px;
   --shadow-card: 0 1px 3px rgb(0 0 0 / 0.08);
 
   /* Solo modo claro por ahora: evita que iOS oscurezca controles nativos. */

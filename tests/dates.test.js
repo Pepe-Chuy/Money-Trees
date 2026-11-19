@@ -9,7 +9,7 @@ import {
 
 describe('toISODate', () => {
   it('usa la fecha LOCAL, no UTC', () => {
-    // new Date(anio, mes0, dia, hora) se interpreta en hora local.
+    // new Date(año, mes0, día, hora) se interpreta en hora local.
     // 31 de octubre a las 23:30 local debe seguir siendo 31 de octubre,
     // aunque en UTC ya sea 1 de noviembre (si la zona es UTC-x).
     assert.equal(toISODate(new Date(2026, 9, 31, 23, 30)), '2026-10-31');

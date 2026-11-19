@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <!--
-    Icono de Money Trees: un signo de dolar cuya barra vertical es el tronco
-    de un arbol; de la parte alta salen ramas con hojas.
+    Icono de Money Trees: un signo de dólar cuya barra vertical es el tronco
+    de un árbol; de la parte alta salen ramas con hojas.
 
-    Notas de diseno:
+    Notas de diseño:
     - El fondo cubre todo el cuadro (sin transparencia) porque iOS rellena
       con negro las zonas transparentes del apple-touch-icon.
     - No se dibujan esquinas redondeadas: iOS y Android aplican su propia
-      mascara. El grupo "art" se escala en la variante maskable para que el
-      dibujo quede dentro de la zona segura (circulo del 80% central).
-    - El signo de dolar vertical en "$" esta formado por el tronco y la S.
+      máscara. El grupo "art" se escala en la variante maskable para que el
+      dibujo quede dentro de la zona segura (círculo del 80% central).
+    - El signo de dólar vertical en "$" está formado por el tronco y la S.
   -->
   <defs>
     <!-- Hoja base apuntando hacia arriba; el origen (0,0) es el tallo. -->
@@ -30,10 +30,10 @@
       <path d="M196 173 C 186 156 180 140 182 124" stroke-width="7"/>
     </g>
 
-    <!-- Tronco: la barra vertical del signo de dolar, mas ancha en la base y con raices. -->
+    <!-- Tronco: la barra vertical del signo de dólar, más ancha en la base y con raíces. -->
     <path d="M247 112 L265 112 L273 418 Q 288 438 316 444 L196 444 Q 224 438 239 418 Z" fill="#6B4528"/>
 
-    <!-- La S del signo de dolar, enroscada alrededor del tronco. -->
+    <!-- La S del signo de dólar, enroscada alrededor del tronco. -->
     <path d="M332 236 C 316 204 214 196 204 250 C 196 294 316 286 316 342 C 316 398 210 400 180 362"
           fill="none" stroke="#7A5232" stroke-width="30" stroke-linecap="round"/>
 

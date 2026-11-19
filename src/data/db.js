@@ -1,18 +1,18 @@
 /**
- * db.js - Envoltorio (wrapper) minimo de IndexedDB basado en promesas.
+ * db.js - Envoltorio (wrapper) mínimo de IndexedDB basado en promesas.
  *
- * La API nativa de IndexedDB es anterior a las promesas: cada operacion
- * devuelve un IDBRequest y el resultado llega despues por los eventos
- * `success` / `error`. Aqui convertimos eso a promesas para poder usar
- * async/await en el resto de la app, que solo vera funciones como
+ * La API nativa de IndexedDB es anterior a las promesas: cada operación
+ * devuelve un IDBRequest y el resultado llega después por los eventos
+ * `success` / `error`. Aquí convertimos eso a promesas para poder usar
+ * async/await en el resto de la app, que solo verá funciones como
  * getAll('expenses') o put('expenses', gasto).
  *
- * TRAMPA IMPORTANTE de las transacciones: una transaccion de IndexedDB se
+ * TRAMPA IMPORTANTE de las transacciones: una transacción de IndexedDB se
  * cierra sola (auto-commit) en cuanto termina la tarea actual del event loop
- * sin peticiones pendientes. Por eso, dentro de una transaccion NO se debe
+ * sin peticiones pendientes. Por eso, dentro de una transacción NO se debe
  * hacer `await` de algo que no sea IndexedDB (un fetch, un setTimeout, etc.):
- * al volver, la transaccion ya estaria cerrada y fallaria con
- * "TransactionInactiveError". runTransaction() esta disenado para eso.
+ * al volver, la transacción ya estaría cerrada y fallaría con
+ * "TransactionInactiveError". runTransaction() está diseñado para eso.
  */
 import { DB_NAME, SCHEMA_VERSION, MIGRATIONS } from './schema.js';
 
@@ -30,10 +30,10 @@ export function requestToPromise(request) {
 }
 
 /**
- * Promesa que se resuelve cuando la transaccion termina de escribirse.
- * Importante: que un put() tenga exito NO significa que este guardado; lo
- * esta hasta que la transaccion completa ("complete"). Si una operacion falla,
- * la transaccion completa se revierte ("abort") y nada se guarda.
+ * Promesa que se resuelve cuando la transacción termina de escribirse.
+ * Importante: que un put() tenga éxito NO significa que esté guardado; lo
+ * está hasta que la transacción completa ("complete"). Si una operación falla,
+ * la transacción completa se revierte ("abort") y nada se guarda.
  * @param {IDBTransaction} transaction
  * @returns {Promise<void>}
  */
@@ -45,7 +45,7 @@ function transactionDone(transaction) {
   });
 }
 
-/** Promesa de la conexion abierta; se comparte para no abrir la base en cada operacion. */
+/** Promesa de la conexión abierta; se comparte para no abrir la base en cada operación. */
 let dbPromise = null;
 
 /**
@@ -58,7 +58,7 @@ export function openDatabase() {
   dbPromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, SCHEMA_VERSION);
 
-    // Solo se dispara si la version guardada es menor que SCHEMA_VERSION.
+    // Solo se dispara si la versión guardada es menor que SCHEMA_VERSION.
     request.onupgradeneeded = (event) => {
       const db = request.result;
       const transaction = request.transaction;
@@ -70,8 +70,8 @@ export function openDatabase() {
 
     request.onsuccess = () => {
       const db = request.result;
-      // Si otra pestana abre una version mas nueva, cerramos esta conexion
-      // para no bloquear su migracion. La siguiente operacion reabrira.
+      // Si otra pestaña abre una versión más nueva, cerramos esta conexión
+      // para no bloquear su migración. La siguiente operación reabrirá.
       db.onversionchange = () => {
         db.close();
         dbPromise = null;
@@ -84,7 +84,7 @@ export function openDatabase() {
       reject(request.error);
     };
 
-    // Otra pestana tiene abierta una version vieja y no la cierra. En una PWA
+    // Otra pestaña tiene abierta una versión vieja y no la cierra. En una PWA
     // instalada es raro; solo lo registramos para poder diagnosticarlo.
     request.onblocked = () => {
       console.warn('IndexedDB: actualizacion bloqueada por otra pestana abierta.');
@@ -95,10 +95,10 @@ export function openDatabase() {
 }
 
 /**
- * Ejecuta varias operaciones en UNA transaccion (todo o nada).
+ * Ejecuta varias operaciones en UNA transacción (todo o nada).
  *
  * `work` recibe un objeto con los stores pedidos y debe lanzar sus peticiones
- * de forma sincrona (o haciendo await SOLO de peticiones de esos stores).
+ * de forma síncrona (o haciendo await SOLO de peticiones de esos stores).
  * Ejemplo:
  *   await runTransaction(['expenses'], 'readwrite', ({ expenses }) => {
  *     expenses.put(gasto1);
@@ -109,7 +109,7 @@ export function openDatabase() {
  * @param {string[]} storeNames  stores que participan
  * @param {'readonly'|'readwrite'} mode
  * @param {(stores: Record<string, IDBObjectStore>) => T | Promise<T>} work
- * @returns {Promise<T>} lo que devuelva `work`, cuando la transaccion ya se guardo
+ * @returns {Promise<T>} lo que devuelva `work`, cuando la transacción ya se guardo
  */
 export async function runTransaction(storeNames, mode, work) {
   const db = await openDatabase();
@@ -123,8 +123,8 @@ export async function runTransaction(storeNames, mode, work) {
   try {
     result = await work(stores);
   } catch (error) {
-    // Un error en nuestro codigo debe revertir lo que ya se pidio. abort()
-    // lanza InvalidStateError si la transaccion ya termino; en ese caso no hay nada que revertir.
+    // Un error en nuestro código debe revertir lo que ya se pidió. abort()
+    // lanza InvalidStateError si la transacción ya termino; en ese caso no hay nada que revertir.
     try {
       transaction.abort();
     } catch {
@@ -149,7 +149,7 @@ export function getAll(storeName) {
 }
 
 /**
- * Objetos cuyo valor en `indexName` esta entre `lower` y `upper` (inclusive).
+ * Objetos cuyo valor en `indexName` está entre `lower` y `upper` (inclusive).
  * Ejemplo: getAllInRange('expenses', 'by_date', '2026-10-01', '2026-10-31').
  * @param {string} storeName
  * @param {string} indexName
@@ -197,4 +197,33 @@ export function remove(storeName, key) {
   return runTransaction([storeName], 'readwrite', (stores) => {
     stores[storeName].delete(key);
   });
+}
+
+/**
+ * Cuenta cuántos objetos tienen `key` en un índice, sin leerlos completos.
+ * Ejemplo: countByIndex('expenses', 'by_category', idCategoria).
+ * @param {string} storeName
+ * @param {string} indexName
+ * @param {any} key
+ * @returns {Promise<number>}
+ */
+export function countByIndex(storeName, indexName, key) {
+  return runTransaction([storeName], 'readonly', (stores) =>
+    requestToPromise(stores[storeName].index(indexName).count(key))
+  );
+}
+
+/**
+ * Borra la base de datos COMPLETA (todos los datos de la app).
+ * Se usa en "Olvidé mi PIN". Antes de borrar hay que cerrar la conexión
+ * abierta; si no, el borrado quedaría bloqueado esperando a que se cierre.
+ * @returns {Promise<void>}
+ */
+export async function deleteDatabase() {
+  if (dbPromise) {
+    const db = await dbPromise.catch(() => null);
+    db?.close();
+    dbPromise = null;
+  }
+  await requestToPromise(indexedDB.deleteDatabase(DB_NAME));
 }

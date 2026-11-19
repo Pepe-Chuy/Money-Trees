@@ -9,7 +9,7 @@
 }
 
 html {
-  /* Evita que iOS agrande el texto al girar el telefono. */
+  /* Evita que iOS agrande el texto al girar el teléfono. */
   -webkit-text-size-adjust: 100%;
 }
 
@@ -25,10 +25,10 @@ body {
 }
 
 /*
- * Safe areas: con viewport-fit=cover el contenido llega hasta los bordes
- * fisicos de la pantalla. env(safe-area-inset-*) da el espacio que ocupan la
+ * Safe áreas: con viewport-fit=cover el contenido llega hasta los bordes
+ * físicos de la pantalla. env(safe-area-inset-*) da el espacio que ocupan la
  * isla/notch (arriba) y la barra de inicio (abajo); max() asegura un margen
- * minimo en equipos donde el inset es 0.
+ * mínimo en equipos donde el inset es 0.
  */
 #app {
   min-height: 100dvh; /* dvh = alto real visible, descontando barras de Safari */

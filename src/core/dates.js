@@ -6,9 +6,9 @@
  *   mes    -> texto "YYYY-MM"         (ej. "2026-10")
  *
  * Trampa importante: new Date().toISOString() devuelve la fecha en UTC.
- * En Ciudad de Mexico (UTC-6) un gasto capturado el 31 de octubre a las
- * 19:00 ya es 1 de noviembre en UTC, y caeria en el mes equivocado. Por eso
- * aqui se usan getFullYear/getMonth/getDate, que trabajan en hora local.
+ * En Ciudad de México (UTC-6) un gasto capturado el 31 de octubre a las
+ * 19:00 ya es 1 de noviembre en UTC, y caería en el mes equivocado. Por eso
+ * aquí se usan getFullYear/getMonth/getDate, que trabajan en hora local.
  *
  * Guardar como texto (y no como Date) tiene otra ventaja: "2026-10-19" se
  * compara y ordena correctamente como string, y el mes es simplemente
@@ -63,11 +63,11 @@ export function currentMonth() {
 /**
  * Suma (o resta, con n negativo) meses a un mes "YYYY-MM".
  *
- * Matematica: se convierte el mes a un indice lineal
- *   indice = anio * 12 + (mes - 1)
- * se le suma n, y se regresa con division entera y modulo:
- *   anio = floor(indice / 12), mes = (indice mod 12) + 1
- * Ejemplo: "2026-11" + 3 -> indice 24311 + 3 = 24314 -> 2027, mes 3 -> "2027-02".
+ * Matemática: se convierte el mes a un índice lineal
+ *   índice = año * 12 + (mes - 1)
+ * se le suma n, y se regresa con división entera y módulo:
+ *   año = floor(índice / 12), mes = (índice mod 12) + 1
+ * Ejemplo: "2026-11" + 3 -> índice 24311 + 3 = 24314 -> 2027, mes 3 -> "2027-02".
  *
  * @param {string} month "YYYY-MM"
  * @param {number} n     meses a sumar (entero, puede ser negativo)
@@ -76,12 +76,12 @@ export function currentMonth() {
 export function addMonths(month, n) {
   const index = monthIndex(month) + n;
   const year = Math.floor(index / 12);
-  const monthNumber = (index - year * 12) + 1; // evita el modulo negativo de JS con n < 0
+  const monthNumber = (index - year * 12) + 1; // evita el módulo negativo de JS con n < 0
   return `${pad(year, 4)}-${pad(monthNumber)}`;
 }
 
 /**
- * Indice lineal de un mes (ver addMonths). Util para restar meses.
+ * Índice lineal de un mes (ver addMonths). Útil para restar meses.
  * @param {string} month "YYYY-MM"
  * @returns {number}
  */
@@ -91,7 +91,7 @@ function monthIndex(month) {
 }
 
 /**
- * Cuantos meses hay de `from` a `to` (to - from). Negativo si `to` es anterior.
+ * Cuántos meses hay de `from` a `to` (to - from). Negativo si `to` es anterior.
  * "2026-10" -> "2027-01" = 3.
  * @param {string} from "YYYY-MM"
  * @param {string} to   "YYYY-MM"
@@ -102,10 +102,10 @@ export function monthsBetween(from, to) {
 }
 
 /**
- * Dias que tiene un mes. Truco: el dia 0 del mes siguiente es el ultimo dia
- * del mes actual (Date normaliza el desbordamiento hacia atras).
- * Como new Date(anio, mes, 0) recibe el mes en base 0, pasar el numero de mes
- * en base 1 equivale a "dia 0 del mes siguiente".
+ * Días que tiene un mes. Truco: el día 0 del mes siguiente es el último día
+ * del mes actual (Date normaliza el desbordamiento hacia atrás).
+ * Como new Date(año, mes, 0) recibe el mes en base 0, pasar el número de mes
+ * en base 1 equivale a "día 0 del mes siguiente".
  * @param {string} month "YYYY-MM"
  * @returns {number} 28 a 31
  */
@@ -134,4 +134,58 @@ export function isValidMonth(text) {
   if (typeof text !== 'string' || !/^\d{4}-\d{2}$/.test(text)) return false;
   const monthNumber = Number(text.slice(5, 7));
   return monthNumber >= 1 && monthNumber <= 12;
+}
+
+/**
+ * Suma (o resta) días a una fecha "YYYY-MM-DD". Usada para el atajo "Ayer".
+ *
+ * Se construye la fecha a mediodía (hora 12) a propósito: en zonas con
+ * horario de verano, la medianoche de ciertos días no existe y Date la
+ * movería a otro día. Al mediodía nunca pasa. Date normaliza el desbordamiento
+ * (día 0 = último del mes anterior, día 32 = siguiente mes).
+ *
+ * @param {string} isoDate "YYYY-MM-DD"
+ * @param {number} n días a sumar (negativo para restar)
+ * @returns {string} "YYYY-MM-DD"
+ */
+export function addDays(isoDate, n) {
+  const [year, monthNumber, day] = isoDate.split('-').map(Number);
+  return toISODate(new Date(year, monthNumber - 1, day + n, 12));
+}
+
+/**
+ * Primer y último día de un mes, para consultar un rango en IndexedDB.
+ * @param {string} month "YYYY-MM"
+ * @returns {[string, string]} ["YYYY-MM-01", "YYYY-MM-último"]
+ */
+export function monthDateRange(month) {
+  return [`${month}-01`, `${month}-${pad(daysInMonth(month))}`];
+}
+
+/** Pone en mayúscula la primera letra ("octubre" -> "Octubre"). */
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+const monthLabelFormatter = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' });
+const dayLabelFormatter = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'short' });
+
+/**
+ * Nombre legible de un mes: "2026-10" -> "Octubre de 2026".
+ * @param {string} month "YYYY-MM"
+ * @returns {string}
+ */
+export function formatMonthLabel(month) {
+  const [year, monthNumber] = month.split('-').map(Number);
+  return capitalize(monthLabelFormatter.format(new Date(year, monthNumber - 1, 1, 12)));
+}
+
+/**
+ * Nombre legible de un día: "2026-10-19" -> "Lunes, 19 oct".
+ * @param {string} isoDate "YYYY-MM-DD"
+ * @returns {string}
+ */
+export function formatDayLabel(isoDate) {
+  const [year, monthNumber, day] = isoDate.split('-').map(Number);
+  return capitalize(dayLabelFormatter.format(new Date(year, monthNumber - 1, day, 12)));
 }

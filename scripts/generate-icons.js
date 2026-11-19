@@ -5,15 +5,15 @@
  * Se corre a mano con `npm run icons` cada vez que cambie el SVG; los PNG
  * resultantes se guardan en el repositorio (no se generan en el build).
  *
- * Por que hace falta: iOS no acepta SVG como apple-touch-icon y el manifest
+ * Por qué hace falta: iOS no acepta SVG como apple-touch-icon y el manifest
  * necesita PNG de 192 y 512 px para que los navegadores lo consideren
  * instalable. Usamos `sharp` (dependencia solo de desarrollo) para rasterizar.
  *
  * Salida:
- *   icon-180.png           apple-touch-icon (tamano que usa el iPhone)
- *   icon-192.png           manifest, proposito "any"
- *   icon-512.png           manifest, proposito "any"
- *   icon-maskable-512.png  manifest, proposito "maskable" (Android recorta en circulo
+ *   icon-180.png           apple-touch-icon (tamaño que usa el iPhone)
+ *   icon-192.png           manifest, propósito "any"
+ *   icon-512.png           manifest, propósito "any"
+ *   icon-maskable-512.png  manifest, propósito "maskable" (Android recorta en círculo
  *                          u otras formas; el dibujo se reduce al 80% para quedar
  *                          dentro de la zona segura)
  */
@@ -25,9 +25,9 @@ import sharp from 'sharp';
 const iconsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../public/icons');
 
 /**
- * Convierte un texto SVG a PNG cuadrado del tamano indicado.
+ * Convierte un texto SVG a PNG cuadrado del tamaño indicado.
  * @param {string} svgText  contenido del SVG
- * @param {number} size     lado del PNG en pixeles
+ * @param {number} size     lado del PNG en píxeles
  * @param {string} fileName nombre del archivo de salida dentro de public/icons
  */
 async function renderPng(svgText, size, fileName) {
@@ -41,8 +41,8 @@ async function renderPng(svgText, size, fileName) {
 
 /**
  * Crea la variante maskable: escala el grupo "art" al 80% alrededor del centro.
- * Matematica: para escalar por s alrededor del centro c, se traslada por c*(1-s)
- * y luego se escala por s. Con c = 256 y s = 0.8, la traslacion es 51.2.
+ * Matemática: para escalar por s alrededor del centro c, se traslada por c*(1-s)
+ * y luego se escala por s. Con c = 256 y s = 0.8, la traslación es 51.2.
  * @param {string} svgText SVG original
  * @returns {string} SVG con el dibujo reducido
  */
