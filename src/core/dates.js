@@ -44,16 +44,35 @@ export function todayISO() {
 }
 
 /**
- * Mes al que pertenece una fecha: "2026-10-19" -> "2026-10".
+ * Día en que empieza cada periodo de presupuesto.
+ *
+ * Los "meses" de la app NO son meses de calendario: van del día 13 al día 12
+ * del mes siguiente (por ejemplo, del 13 de noviembre al 12 de diciembre).
+ * El periodo se identifica con el mes en que EMPIEZA: ese ejemplo es "2026-11"
+ * y se muestra como "Noviembre de 2026".
+ *
+ * Toda la app pasa por monthOf y monthDateRange, así que cambiar este número
+ * cambia el corte en todas partes. Los datos no se tocan, porque cada gasto
+ * guarda su fecha real y el periodo se calcula al leer.
+ */
+export const PERIOD_START_DAY = 13;
+
+/**
+ * Periodo al que pertenece una fecha.
+ *   "2026-11-13" -> "2026-11"  (desde el día 13, ya es el periodo de ese mes)
+ *   "2026-12-12" -> "2026-11"  (antes del 13, sigue en el periodo anterior)
+ *   "2027-01-05" -> "2026-12"  (cruza el año sin problema gracias a addMonths)
  * @param {string} isoDate
- * @returns {string}
+ * @returns {string} "YYYY-MM" del mes en que empieza el periodo
  */
 export function monthOf(isoDate) {
-  return isoDate.slice(0, 7);
+  const calendarMonth = isoDate.slice(0, 7);
+  const day = Number(isoDate.slice(8, 10));
+  return day >= PERIOD_START_DAY ? calendarMonth : addMonths(calendarMonth, -1);
 }
 
 /**
- * Mes actual en hora local, "YYYY-MM".
+ * Periodo actual en hora local, "YYYY-MM".
  * @returns {string}
  */
 export function currentMonth() {
@@ -154,12 +173,34 @@ export function addDays(isoDate, n) {
 }
 
 /**
- * Primer y último día de un mes, para consultar un rango en IndexedDB.
- * @param {string} month "YYYY-MM"
- * @returns {[string, string]} ["YYYY-MM-01", "YYYY-MM-último"]
+ * Primer y último día de un periodo, para consultar un rango en IndexedDB.
+ * Ambos extremos son inclusivos: "2026-11" -> ["2026-11-13", "2026-12-12"].
+ * Como el día 12 existe en todos los meses, no hay casos raros con febrero.
+ * @param {string} month "YYYY-MM" (mes en que empieza el periodo)
+ * @returns {[string, string]}
  */
 export function monthDateRange(month) {
-  return [`${month}-01`, `${month}-${pad(daysInMonth(month))}`];
+  return [
+    `${month}-${pad(PERIOD_START_DAY)}`,
+    `${addMonths(month, 1)}-${pad(PERIOD_START_DAY - 1)}`,
+  ];
+}
+
+const shortDayFormatter = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' });
+
+/**
+ * Rango legible de un periodo: "2026-11" -> "13 nov – 12 dic".
+ * Se muestra bajo el nombre del mes para que quede claro dónde corta.
+ * @param {string} month "YYYY-MM"
+ * @returns {string}
+ */
+export function formatPeriodRange(month) {
+  const format = (iso) => {
+    const [year, monthNumber, day] = iso.split('-').map(Number);
+    return shortDayFormatter.format(new Date(year, monthNumber - 1, day, 12)).replace('.', '');
+  };
+  const [first, last] = monthDateRange(month);
+  return `${format(first)} – ${format(last)}`;
 }
 
 /** Pone en mayúscula la primera letra ("octubre" -> "Octubre"). */

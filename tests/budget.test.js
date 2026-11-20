@@ -57,13 +57,15 @@ describe('summarizeMonth', () => {
   const input = {
     month: '2026-10',
     salaryChanges: [{ fromMonth: '2026-01', amount: 2_500_000 }],
+    // El periodo "2026-10" va del 13 de octubre al 12 de noviembre.
     expenses: [
-      { date: '2026-10-01', amount: 120_000, categoryId: 'rest' },
+      { date: '2026-11-01', amount: 120_000, categoryId: 'rest' },
       { date: '2026-10-15', amount: 130_000, categoryId: 'rest' },
       { date: '2026-10-20', amount: 45_050, categoryId: 'uber' },
-      { date: '2026-09-30', amount: 999_999, categoryId: 'rest' }, // otro mes: se ignora
+      { date: '2026-10-12', amount: 999_999, categoryId: 'rest' }, // periodo anterior: se ignora
+      { date: '2026-11-13', amount: 888_888, categoryId: 'rest' }, // periodo siguiente: se ignora
     ],
-    extraIncomes: [{ date: '2026-10-10', amount: 300_000 }],
+    extraIncomes: [{ date: '2026-11-12', amount: 300_000 }], // último día del periodo: cuenta
     categories,
     monthlyTotalLimit: 400_000,
   };

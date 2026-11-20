@@ -308,6 +308,11 @@
   font-size: var(--font-size-lg);
 }
 
+.month-picker-range {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
 .month-picker-label .link-btn {
   align-self: center;
   font-size: var(--font-size-sm);

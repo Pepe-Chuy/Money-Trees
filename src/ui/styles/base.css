@@ -11,6 +11,14 @@
 html {
   /* Evita que iOS agrande el texto al girar el teléfono. */
   -webkit-text-size-adjust: 100%;
+  /*
+   * touch-action: manipulation permite tocar, desplazar y pellizcar, pero
+   * desactiva el zoom por doble toque. Se hereda (el navegador combina el
+   * valor de cada elemento con el de sus ancestros), así que basta ponerlo aquí.
+   * Efecto extra: el navegador ya no espera ~300 ms para ver si viene un
+   * segundo toque, así que los botones responden más rápido.
+   */
+  touch-action: manipulation;
 }
 
 body {

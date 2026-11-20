@@ -68,9 +68,26 @@ export function formatCents(cents) {
 }
 
 /**
- * Convierte centavos al texto que va en un campo editable: 123456 -> "1234.56".
- * Sin signo de pesos ni comas, para que el usuario lo edite y se pueda volver
- * a leer con parseMoneyToCents (ida y vuelta exacta).
+ * Agrega comas de miles a una cadena de dígitos: "1000000" -> "1,000,000".
+ *
+ * La expresión regular busca cada posición (\B = no al inicio) seguida de
+ * grupos completos de 3 dígitos hasta el final (?=(\d{3})+$). En esas
+ * posiciones se inserta la coma. Se hace a mano y no con Intl.NumberFormat
+ * porque Intl convierte a número, y aquí trabajamos con texto que el usuario
+ * está escribiendo (puede tener 20 dígitos o un punto sin decimales todavía).
+ *
+ * @param {string} digits solo dígitos
+ * @returns {string}
+ */
+function groupThousands(digits) {
+  return digits.replace(/\B(?=(\d{3})+$)/g, ',');
+}
+
+/**
+ * Convierte centavos al texto que va en un campo editable: 123456 -> "1,234.56".
+ * Sin signo de pesos, pero con comas de miles, igual que lo que produce
+ * formatMoneyInput mientras se escribe. parseMoneyToCents ignora las comas, así
+ * que la ida y vuelta sigue siendo exacta.
  *
  * @param {number} cents entero en centavos
  * @returns {string}
@@ -80,5 +97,61 @@ export function centsToInputValue(cents) {
   const abs = Math.abs(cents);
   const pesos = Math.floor(abs / 100);
   const rest = String(abs % 100).padStart(2, '0');
-  return `${sign}${pesos}.${rest}`;
+  return `${sign}${groupThousands(String(pesos))}.${rest}`;
+}
+
+/**
+ * Da formato a lo que el usuario está escribiendo en un campo de monto, en
+ * cada tecla: "1000000" -> "1,000,000", "1234.5" -> "1,234.5".
+ *
+ * Reglas:
+ * - Solo se conservan dígitos y UN punto decimal (el primero); cualquier otro
+ *   carácter (letras, $, comas viejas, un segundo punto) se descarta.
+ * - Máximo 2 decimales: lo que sobra se corta.
+ * - Ceros a la izquierda se quitan ("007" -> "7"), pero "0.5" se respeta.
+ * - No se completan decimales: "12." se queda así, porque el usuario puede
+ *   estar a punto de escribir los centavos.
+ *
+ * @param {string} text lo que hay en el campo
+ * @returns {string}
+ */
+export function formatMoneyInput(text) {
+  const cleaned = String(text ?? '').replace(/[^\d.]/g, '');
+  const dotIndex = cleaned.indexOf('.');
+  const hasDot = dotIndex !== -1;
+  let integerPart = hasDot ? cleaned.slice(0, dotIndex) : cleaned;
+  const decimalPart = hasDot ? cleaned.slice(dotIndex + 1).replace(/\./g, '').slice(0, 2) : '';
+
+  integerPart = integerPart.replace(/^0+(?=\d)/, ''); // "007" -> "7", "0" se queda
+  const grouped = groupThousands(integerPart);
+  return hasDot ? `${grouped}.${decimalPart}` : grouped;
+}
+
+/**
+ * Cuántos caracteres "significativos" (dígitos y punto) hay antes de una
+ * posición. Sirve para recolocar el cursor después de reformatear: las comas
+ * se mueven, pero los dígitos no.
+ * @param {string} text
+ * @param {number} position índice del cursor
+ * @returns {number}
+ */
+export function countSignificantBefore(text, position) {
+  return text.slice(0, position).replace(/[^\d.]/g, '').length;
+}
+
+/**
+ * Inversa de countSignificantBefore: la posición en `text` que queda justo
+ * después del carácter significativo número `count`.
+ * @param {string} text
+ * @param {number} count
+ * @returns {number}
+ */
+export function positionAfterSignificant(text, count) {
+  if (count <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    if (/[\d.]/.test(text[i])) seen += 1;
+    if (seen === count) return i + 1;
+  }
+  return text.length;
 }

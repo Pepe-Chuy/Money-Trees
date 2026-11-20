@@ -63,8 +63,9 @@ describe('dates (fase 1)', () => {
   });
 
   it('monthDateRange', () => {
-    assert.deepEqual(monthDateRange('2026-02'), ['2026-02-01', '2026-02-28']);
-    assert.deepEqual(monthDateRange('2026-10'), ['2026-10-01', '2026-10-31']);
+    // Periodos del 13 al 12 (más casos en dates.test.js).
+    assert.deepEqual(monthDateRange('2026-02'), ['2026-02-13', '2026-03-12']);
+    assert.deepEqual(monthDateRange('2026-10'), ['2026-10-13', '2026-11-12']);
   });
 
   it('formatMonthLabel en español', () => {

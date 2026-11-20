@@ -1,6 +1,6 @@
 {
   "name": "money-trees",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "description": "Presupuesto mensual personal como PWA (sin servidor, datos solo en el dispositivo).",
   "type": "module",

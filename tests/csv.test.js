@@ -57,9 +57,10 @@ describe('expensesToCsv', () => {
     const lines = csv.slice(1).trimEnd().split('\r\n');
     assert.deepEqual(lines, [
       'fecha,mes,categoria,monto,nota,origen,id',
+      // La columna "mes" es el periodo (13 al 12): el 3 de noviembre cae en el de octubre.
       '2026-10-31,2026-10,Restaurantes,1234.56,"cena ""cumple""",manual,e1',
-      '2026-11-03,2026-11,Sin categoría,1.00,x,fijo,e3',
-      '2026-11-03,2026-11,"Café, té",45.50,,manual,e2',
+      '2026-11-03,2026-10,Sin categoría,1.00,x,fijo,e3',
+      '2026-11-03,2026-10,"Café, té",45.50,,manual,e2',
     ]);
   });
 

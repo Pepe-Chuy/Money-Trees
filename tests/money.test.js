@@ -7,7 +7,10 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseMoneyToCents, formatCents, centsToInputValue } from '../src/core/money.js';
+import {
+  parseMoneyToCents, formatCents, centsToInputValue, formatMoneyInput,
+  countSignificantBefore, positionAfterSignificant,
+} from '../src/core/money.js';
 
 describe('parseMoneyToCents', () => {
   it('lee enteros y decimales', () => {
@@ -50,7 +53,8 @@ describe('formatCents', () => {
 
 describe('centsToInputValue', () => {
   it('produce texto editable', () => {
-    assert.equal(centsToInputValue(123456), '1234.56');
+    assert.equal(centsToInputValue(123456), '1,234.56');
+    assert.equal(centsToInputValue(100000000), '1,000,000.00');
     assert.equal(centsToInputValue(5), '0.05');
     assert.equal(centsToInputValue(-5000), '-50.00');
   });
@@ -59,5 +63,51 @@ describe('centsToInputValue', () => {
     for (const cents of [0, 1, 99, 100, 123456, -7, 3000000, 987654321]) {
       assert.equal(parseMoneyToCents(centsToInputValue(cents)), cents);
     }
+  });
+});
+
+describe('formatMoneyInput', () => {
+  it('agrega comas de miles mientras se escribe', () => {
+    assert.equal(formatMoneyInput('1000000'), '1,000,000');
+    assert.equal(formatMoneyInput('1000'), '1,000');
+    assert.equal(formatMoneyInput('999'), '999');
+    assert.equal(formatMoneyInput('1234.5'), '1,234.5');
+    assert.equal(formatMoneyInput(''), '');
+  });
+
+  it('reacomoda comas viejas al insertar o borrar', () => {
+    assert.equal(formatMoneyInput('1,0000'), '10,000');
+    assert.equal(formatMoneyInput('1,00'), '100');
+  });
+
+  it('respeta el punto pendiente y limita a 2 decimales', () => {
+    assert.equal(formatMoneyInput('12.'), '12.');
+    assert.equal(formatMoneyInput('.5'), '.5');
+    assert.equal(formatMoneyInput('1.999'), '1.99');
+    assert.equal(formatMoneyInput('1.2.3'), '1.23');
+  });
+
+  it('descarta letras, signos y ceros a la izquierda', () => {
+    assert.equal(formatMoneyInput('$1a2b3'), '123');
+    assert.equal(formatMoneyInput('007'), '7');
+    assert.equal(formatMoneyInput('0'), '0');
+    assert.equal(formatMoneyInput('0.5'), '0.5');
+  });
+
+  it('lo formateado se lee igual con parseMoneyToCents', () => {
+    assert.equal(parseMoneyToCents(formatMoneyInput('1234567.89')), 123456789);
+  });
+});
+
+describe('posición del cursor', () => {
+  it('cuenta y recoloca por dígitos, ignorando comas', () => {
+    // "12,354": el usuario escribió el 5 tras "1,23"; el cursor iba después del 5.
+    const raw = '1,2354'; // texto antes de reformatear, cursor en la posición 5
+    const count = countSignificantBefore(raw, 5); // "1234"... -> 4 dígitos antes
+    assert.equal(count, 4);
+    // En "12,354" el 4.º dígito (el 5) termina en la posición 5.
+    assert.equal(positionAfterSignificant('12,354', count), 5);
+    assert.equal(positionAfterSignificant('1,000', 0), 0);
+    assert.equal(positionAfterSignificant('1,000', 9), 5);
   });
 });
