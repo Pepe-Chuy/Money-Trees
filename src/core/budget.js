@@ -48,6 +48,25 @@ export function sumAmounts(items) {
 }
 
 /**
+ * Tasa de ahorro: qué porcentaje de lo que entró se quedó sin gastar.
+ *   ahorro 5,000 de ingresos 25,000 -> 20 (%)
+ * Puede ser negativa si se gastó más de lo que entró (-10 = gastaste un 10%
+ * más que tus ingresos). Se redondea al entero más cercano (Math.round), a
+ * diferencia de los límites, que se truncan para no anunciar 80% antes de tiempo.
+ * Sin ingresos (0) el porcentaje no tiene sentido (división entre cero): null.
+ *
+ * @param {number} leftover    centavos (puede ser negativo)
+ * @param {number} totalIncome centavos
+ * @returns {number|null}
+ */
+export function savingsRate(leftover, totalIncome) {
+  if (!(totalIncome > 0)) return null;
+  // Multiplicar antes de dividir: con enteros en centavos no hay pérdida
+  // de precisión hasta cifras absurdamente grandes.
+  return Math.round((leftover * 100) / totalIncome);
+}
+
+/**
  * Resumen completo de un mes.
  *
  * Ahorro del mes (sobrante) = nómina + ingresos extra - gastos.
@@ -62,7 +81,7 @@ export function sumAmounts(items) {
  * @param {number|null} input.monthlyTotalLimit
  * @returns {{
  *   salary: number, extraIncome: number, totalIncome: number,
- *   totalExpenses: number, leftover: number,
+ *   totalExpenses: number, leftover: number, savingsPercent: number|null,
  *   total: { status: string, percent: number|null, limit: number|null },
  *   byCategory: { category: object, spent: number, status: string, percent: number|null }[]
  * }}
@@ -94,12 +113,15 @@ export function summarizeMonth({ month, salaryChanges, expenses, extraIncomes, c
     })
     .sort((a, b) => b.spent - a.spent || a.category.name.localeCompare(b.category.name, 'es'));
 
+  const leftover = totalIncome - totalExpenses;
+
   return {
     salary,
     extraIncome,
     totalIncome,
     totalExpenses,
-    leftover: totalIncome - totalExpenses,
+    leftover,
+    savingsPercent: savingsRate(leftover, totalIncome),
     total: { ...limitStatus(totalExpenses, monthlyTotalLimit), limit: monthlyTotalLimit ?? null },
     byCategory,
   };

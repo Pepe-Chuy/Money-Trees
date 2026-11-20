@@ -6,6 +6,7 @@ import { useAppData } from '../state/AppDataContext.jsx';
 import { MonthPicker } from '../components/MonthPicker.jsx';
 import { formatCents } from '../../core/money.js';
 import { formatDayLabel } from '../../core/dates.js';
+import { sumAmounts } from '../../core/budget.js';
 
 /**
  * Agrupa gastos por fecha, ordenados de la más reciente a la más antigua.
@@ -48,7 +49,11 @@ export function ExpensesScreen({ onEdit }) {
       ) : (
         groupByDate(expenses).map(([date, items]) => (
           <section key={date} class="day-group">
-            <h3 class="day-group-title">{formatDayLabel(date)}</h3>
+            <h3 class="day-group-title">
+              <span>{formatDayLabel(date)}</span>
+              {/* Total del día solo cuando hay 2 o más gastos; con uno sería repetir el mismo monto. */}
+              {items.length >= 2 && <span class="day-group-total">{formatCents(sumAmounts(items))}</span>}
+            </h3>
             <ul class="list">
               {items.map((expense) => (
                 <li key={expense.id}>

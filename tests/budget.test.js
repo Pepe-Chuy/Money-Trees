@@ -4,7 +4,17 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { salaryForMonth } from '../src/core/salary.js';
-import { limitStatus, summarizeMonth, sumAmounts } from '../src/core/budget.js';
+import { limitStatus, summarizeMonth, sumAmounts, savingsRate } from '../src/core/budget.js';
+
+describe('savingsRate', () => {
+  it('porcentaje redondeado, negativo si hay déficit, null sin ingresos', () => {
+    assert.equal(savingsRate(500_000, 2_500_000), 20);
+    assert.equal(savingsRate(2_504_950, 2_800_000), 89); // 89.46 -> 89
+    assert.equal(savingsRate(-250_000, 2_500_000), -10);
+    assert.equal(savingsRate(-295_050, 0), null);
+    assert.equal(savingsRate(0, 2_500_000), 0);
+  });
+});
 
 describe('salaryForMonth', () => {
   const changes = [
@@ -77,6 +87,7 @@ describe('summarizeMonth', () => {
     assert.equal(summary.totalIncome, 2_800_000);
     assert.equal(summary.totalExpenses, 295_050);
     assert.equal(summary.leftover, 2_800_000 - 295_050);
+    assert.equal(summary.savingsPercent, 89); // 2,504,950 / 2,800,000 = 89.46%
   });
 
   it('límite total', () => {
@@ -99,6 +110,7 @@ describe('summarizeMonth', () => {
   it('sobrante negativo cuando se gasta más de lo que entra', () => {
     const deficit = summarizeMonth({ ...input, salaryChanges: [], extraIncomes: [] });
     assert.equal(deficit.leftover, -295_050);
+    assert.equal(deficit.savingsPercent, null); // sin ingresos no hay porcentaje
   });
 
   it('sumAmounts de lista vacía es 0', () => {

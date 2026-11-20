@@ -5,6 +5,7 @@
 import { useAppData } from '../state/AppDataContext.jsx';
 import { MonthPicker } from '../components/MonthPicker.jsx';
 import { ProgressBar } from '../components/ProgressBar.jsx';
+import { WeeklyChart } from '../components/WeeklyChart.jsx';
 import { formatCents } from '../../core/money.js';
 
 /** Texto corto para el estado de un límite. */
@@ -14,8 +15,8 @@ const STATUS_TEXT = { ok: '', warning: 'Cerca del límite', danger: 'Límite sup
  * @param {{ onGoToSettings: () => void }} props
  */
 export function SummaryScreen({ onGoToSettings }) {
-  const { month, setMonth, summary, salaryChanges } = useAppData();
-  const { salary, extraIncome, totalIncome, totalExpenses, leftover, total, byCategory } = summary;
+  const { month, setMonth, summary, salaryChanges, expenses } = useAppData();
+  const { salary, extraIncome, totalIncome, totalExpenses, leftover, savingsPercent, total, byCategory } = summary;
 
   return (
     <div class="screen">
@@ -32,8 +33,22 @@ export function SummaryScreen({ onGoToSettings }) {
 
       <section class="card">
         <h2 class="card-title">Ahorro del mes</h2>
-        <p class={`big-number ${leftover < 0 ? 'is-negative' : 'is-positive'}`}>{formatCents(leftover)}</p>
-        <p class="hint">{leftover < 0 ? 'Gastaste más de lo que entró este mes.' : 'Ingresos menos gastos.'}</p>
+        <div class="savings-row">
+          <p class={`big-number ${leftover < 0 ? 'is-negative' : 'is-positive'}`}>{formatCents(leftover)}</p>
+          {/* Tasa de ahorro: qué parte de los ingresos queda. null si no hubo ingresos. */}
+          {savingsPercent !== null && (
+            <span class={`savings-percent ${leftover < 0 ? 'is-negative' : 'is-positive'}`}>
+              {savingsPercent}%
+            </span>
+          )}
+        </div>
+        <p class="hint">
+          {savingsPercent === null
+            ? 'Ingresos menos gastos.'
+            : leftover < 0
+              ? `Gastaste ${Math.abs(savingsPercent)}% más de lo que entró este mes.`
+              : `Ahorras el ${savingsPercent}% de tus ingresos del mes.`}
+        </p>
       </section>
 
       <section class="card">
@@ -59,6 +74,12 @@ export function SummaryScreen({ onGoToSettings }) {
             )}
           </div>
         )}
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Gasto por semana</h2>
+        {/* key={month}: al cambiar de periodo se reinicia la semana seleccionada. */}
+        <WeeklyChart key={month} expenses={expenses} month={month} />
       </section>
 
       <section class="card">

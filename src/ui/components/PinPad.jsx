@@ -10,7 +10,7 @@
  *   teclear el último dígito, como en el iPhone.
  * - Si no (al crear un PIN nuevo, de 4 a 6), aparece el botón "Listo".
  */
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { Icon } from './Icon.jsx';
 import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from '../../core/pin.js';
 
@@ -25,8 +25,20 @@ import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from '../../core/pin.js';
  * }} props
  */
 export function PinPad({ title, message, isError = false, autoSubmitLength = null, disabled = false, onSubmit }) {
-  const [digits, setDigits] = useState('');
+  const [digits, setDigitsState] = useState('');
   const dotCount = autoSubmitLength ?? PIN_MAX_LENGTH;
+
+  /*
+   * Copia "en vivo" de los dígitos. Preact redibuja un instante después de
+   * cada cambio; si llegan dos toques muy rápidos antes de redibujar, la
+   * variable `digits` del segundo toque todavía tendría el valor viejo y se
+   * perdería un dígito. La ref siempre tiene el valor más reciente.
+   */
+  const digitsRef = useRef('');
+  function setDigits(value) {
+    digitsRef.current = value;
+    setDigitsState(value);
+  }
 
   /** Envía y limpia para el siguiente intento. */
   function submit(pin) {
@@ -36,10 +48,36 @@ export function PinPad({ title, message, isError = false, autoSubmitLength = nul
 
   /** @param {string} digit */
   function press(digit) {
-    if (disabled || digits.length >= PIN_MAX_LENGTH) return;
-    const next = digits + digit;
+    const currentDigits = digitsRef.current;
+    if (disabled || currentDigits.length >= PIN_MAX_LENGTH) return;
+    const next = currentDigits + digit;
     if (autoSubmitLength && next.length === autoSubmitLength) submit(next);
     else setDigits(next);
+  }
+
+  /**
+   * Manejadores de toque para una tecla del PIN.
+   *
+   * Por qué no basta onClick: al teclear rápido (sobre todo el mismo dígito
+   * dos veces, "1 1"), iOS interpreta los dos toques como "doble toque para
+   * hacer zoom" y además puede tragarse el segundo clic.
+   *
+   * Solución: actuar en touchend y llamar preventDefault(). Eso le dice a iOS
+   * "este toque ya lo manejé": no hace zoom y no genera el clic sintético
+   * de después (así la tecla no cuenta doble).
+   * onClick se queda para el mouse y el teclado (PC, VoiceOver), donde no hay
+   * touchend y por tanto tampoco doble conteo.
+   *
+   * @param {() => void} action
+   */
+  function tap(action) {
+    return {
+      onTouchEnd: (event) => {
+        event.preventDefault();
+        if (!event.currentTarget.disabled) action();
+      },
+      onClick: action,
+    };
   }
 
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -58,25 +96,25 @@ export function PinPad({ title, message, isError = false, autoSubmitLength = nul
       </p>
       <div class="pinpad-keys">
         {keys.map((k) => (
-          <button key={k} type="button" class="pinpad-key" disabled={disabled} onClick={() => press(k)}>
+          <button key={k} type="button" class="pinpad-key" disabled={disabled} {...tap(() => press(k))}>
             {k}
           </button>
         ))}
         {canConfirm ? (
-          <button type="button" class="pinpad-key pinpad-key--text" onClick={() => submit(digits)}>
+          <button type="button" class="pinpad-key pinpad-key--text" {...tap(() => submit(digitsRef.current))}>
             Listo
           </button>
         ) : (
           <span />
         )}
-        <button type="button" class="pinpad-key" disabled={disabled} onClick={() => press('0')}>
+        <button type="button" class="pinpad-key" disabled={disabled} {...tap(() => press('0'))}>
           0
         </button>
         <button
           type="button"
           class="pinpad-key pinpad-key--text"
           disabled={disabled || digits.length === 0}
-          onClick={() => setDigits(digits.slice(0, -1))}
+          {...tap(() => setDigits(digitsRef.current.slice(0, -1)))}
           aria-label="Borrar"
         >
           <Icon name="backspace" />

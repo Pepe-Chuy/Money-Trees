@@ -90,6 +90,23 @@
   font-variant-numeric: tabular-nums; /* dígitos del mismo ancho: las cifras no "bailan" */
 }
 
+/* Ahorro del mes: el monto grande y, a su derecha, la tasa de ahorro. */
+.savings-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.savings-percent {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.savings-percent.is-positive { color: var(--color-ok); }
+.savings-percent.is-negative { color: var(--color-danger); }
+
 .big-number.is-positive { color: var(--color-ok); }
 .big-number.is-negative { color: var(--color-danger); }
 
@@ -213,6 +230,21 @@
   text-transform: none;
 }
 
+/* El título del día lleva la fecha a la izquierda y el total a la derecha. */
+.day-group-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  /* Alineado con el padding interno de la lista, para que el total quede
+     en la misma columna que los montos de abajo. */
+  padding: 0 var(--space-4);
+}
+
+.day-group-total {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
 .day-group .list {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -306,6 +338,83 @@
   flex-direction: column;
   align-items: center;
   font-size: var(--font-size-lg);
+}
+
+/* ---------- Histograma semanal ---------- */
+
+.week-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Línea de lectura: rango, monto y cantidad de la semana seleccionada. */
+.week-chart-readout {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.week-chart-plot {
+  display: flex;
+  align-items: stretch;
+  height: 160px;
+}
+
+/* Cada columna completa es el área táctil (más grande que la barra). */
+.week-chart-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/*
+ * Área de la barra, a todo el ancho de la columna. Su borde inferior forma la
+ * línea base: como las columnas van pegadas (sin gap), los bordes se unen en
+ * una sola línea continua y discreta que no compite con los datos.
+ */
+.week-chart-track {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: flex-end;     /* las barras crecen desde la base */
+  justify-content: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.week-chart-bar {
+  width: 60%;                /* el 40% restante es el aire entre barras */
+  border-radius: 4px 4px 0 0; /* redondeo solo en el extremo de datos; la base queda recta */
+  background: var(--color-primary);
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+
+.week-chart-col.is-selected .week-chart-bar {
+  opacity: 1;
+}
+
+.week-chart-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.week-chart-col.is-selected .week-chart-label {
+  color: var(--color-text);
+  font-weight: 600;
 }
 
 .month-picker-range {

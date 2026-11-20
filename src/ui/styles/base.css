@@ -6,6 +6,12 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  /*
+   * Sin zoom por doble toque en NINGÚN elemento. En teoría basta con ponerlo
+   * en <html> (abajo), pero en la práctica iOS no siempre lo respeta en
+   * elementos hijos, como las teclas del PIN. Ponerlo en todos es lo seguro.
+   */
+  touch-action: manipulation;
 }
 
 html {
